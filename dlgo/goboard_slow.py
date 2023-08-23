@@ -150,7 +150,7 @@ class GameState():
             return False
         next_board = copy.deepcopy(self.board)
         next_board.place_stone(player, move.point)
-        new_string = next_board.get_got_string(move.point)
+        new_string = next_board.get_go_string(move.point)
         return new_string.num_liberties == 0
     
     @property
@@ -176,7 +176,7 @@ class GameState():
         if move.is_pass or move.is_resign:
             return True
         return (
-            self.board.get(move.Point) is None and
+            self.board.get(move.point) is None and
             not self.is_move_self_capture(self.next_player, move) and
             not self.does_move_violate_ko(self.next_player, move)
         )
