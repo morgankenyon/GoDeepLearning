@@ -63,7 +63,7 @@ class GoBoard():
         #create dots
         middle = 4 * self.space + self.offset
         self.create_dot(board, middle, middle, "black")
-
+ 
         left_coordinate = 2 * self.space + self.offset
         self.create_dot(board, left_coordinate, left_coordinate, "black")
 
@@ -83,8 +83,8 @@ class GoBoard():
         for row in range(game_board.num_rows, 0, -1):
             for col in range(1, game_board.num_cols + 1):
                 stone = game_board.get(gotypes.Point(row=row, col=col))
-                if stone != None:
-                    print (f"row: {row}, col: {col}, stone: {stone}")
+                # if stone != None:
+                #     print (f"row: {row}, col: {col}, stone: {stone}")
                 stone_x = self.calc_pos(row)
                 stone_y = self.calc_pos(col)
                 if stone == gotypes.Player.black:
@@ -100,11 +100,11 @@ class GoBoard():
         if not game.is_over():
             bot_move = bots[game.next_player].select_move(game)
             game = game.apply_move(bot_move)
-            ##write_board(game.board)
+            
             self.write_pieces(game.board, bot_move.point)
-            print("Writing board")
-            #self.after(1000, self.update_clock)
+            
             self.root.after(1000, partial(self.make_move, game, bots, count - 1))
+        print("Game is over")
 
     def start_game(self, board_size_selector, player_one_selector, player_two_selector):
         #getting selections for game
@@ -160,13 +160,9 @@ class GoBoard():
         ))
         button.place(x=750, y=50)
 
-        board_height = 400
-        board_width = 400
-
-        self.ui_board = Canvas(self.root, height=board_height, width=board_width, bg='#e4bf81')
         self.ui_board.pack(pady=200)
+        self.write_board(self.ui_board)
 
-        #self.write_board(self.ui_board)
         # Execute Tkinter
         self.root.mainloop()
 
