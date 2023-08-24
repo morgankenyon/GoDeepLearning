@@ -7,6 +7,10 @@ from dlgo import goboard_slow
 from dlgo import gotypes
 import time
 
+
+offset = 28
+space = 43
+
 def get_board_size(board_selection):
     if board_selection == "9x9":
         return 9
@@ -28,16 +32,8 @@ def draw_stone(board, middle_x, middle_y, color):
     board.create_oval(middle_x - stone_offset, middle_y - stone_offset, middle_x + stone_offset, middle_y + stone_offset, fill=color, width=1, outline="")
 
  
-def write_board(game_board):
-    board_height = 400
-    board_width = 400
-
-    board = Canvas(root, height=board_height, width=board_width, bg='#e4bf81')
-    board.pack(pady=200)
-
+def write_board(board):
     #write columns
-    offset = 28
-    space = 43
     for i in range(0, 9):
         number = i * space
         board.create_line(offset + number, offset + 0, offset + number, board_height - offset, fill="black", width=1)
@@ -73,6 +69,8 @@ def write_board(game_board):
     # black_y = 4 * space + offset
     # draw_stone(board, black_x, black_y, "black")
 
+
+def write_pieces(game_board, ui_board):
     for row in range(game_board.num_rows, 0, -1):
         for col in range(1, game_board.num_cols + 1):
             stone = game_board.get(gotypes.Point(row=row, col=col))
@@ -81,9 +79,18 @@ def write_board(game_board):
             stone_x = (row - 1) * space + offset
             stone_y = (col - 1) * space + offset
             if stone == gotypes.Player.black:
-                draw_stone(board, stone_x, stone_y, "black")
+                draw_stone(ui_board, stone_x, stone_y, "black")
             elif stone == gotypes.Player.white:
-                draw_stone(board, stone_x, stone_y, "white") 
+                draw_stone(ui_board, stone_x, stone_y, "white") 
+
+
+def make_move(game, bots):
+    for i in range(0, 100):
+        bot_move = bots[game.next_player].select_move(game)
+        game = game.apply_move(bot_move)
+        ##write_board(game.board)
+        write_pieces(game, board)
+        print("Writing board")
 
 def start_game():
     board_size = get_board_size(board_size_selector.get())
@@ -103,15 +110,17 @@ def start_game():
         gotypes.Player.white: agent.naive.RandomBot(),
     }
 
+    make_move(game, bots)
+
     #while not game.is_over():
     #time.sleep(2)
 
-    for i in range(0, 100):
+    # for i in range(0, 100):
 
-        bot_move = bots[game.next_player].select_move(game)
-        game = game.apply_move(bot_move)
-        write_board(game.board)
-        print("Writing board")
+    #     bot_move = bots[game.next_player].select_move(game)
+    #     game = game.apply_move(bot_move)
+    #     write_board(game.board)
+    #     print("Writing board")
     
     # bot_move = bots[game.next_player].select_move(game)
     # game = game.apply_move(bot_move)
@@ -154,6 +163,13 @@ player_two_selector.place(x=450, y=50)
 #adding button to start game
 button = Button(text="Display selection", command=start_game)
 button.place(x=750, y=50)
+
+
+board_height = 400
+board_width = 400
+
+board = Canvas(root, height=board_height, width=board_width, bg='#e4bf81')
+board.pack(pady=200)
 
 #write_board()
 # Execute Tkinter
