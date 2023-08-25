@@ -108,49 +108,12 @@ class GoBoard():
         else:
             bot_move = bots[game.next_player].select_move(game)
 
+            game = game.apply_move(bot_move)
             if (not bot_move.is_pass) and (not bot_move.is_resign):
-                game = game.apply_move(bot_move)
-                
                 self.write_pieces(game.board, bot_move.point)
                 
             
-            self.root.after(2500, partial(self.make_move, game, bots, count - 1))
-    
-    def setup_broken_game(self, game):
-        white_moves = list(range(0,40))
-        black_moves = [40] + list(range(42,81))
-        print(f'white length: {len(white_moves)}')
-        print(f'black length: {len(black_moves)}')
-        while len(white_moves) > 0:
-            if game.next_player == gotypes.Player.black:
-                move_num = black_moves.pop()
-                row = math.floor(move_num / 9) + 1
-                col = (move_num % 9) + 1
-
-                if (row == 8 and col == 8) or (row == 8 and col == 2):
-                    continue
-                #print(f"black playing: {row} - {col}")
-                bot_move = goboard_slow.Move.play(gotypes.Point(row=row, col=col))
-                game = game.apply_move(bot_move)
-            elif game.next_player == gotypes.Player.white:
-                move_num = white_moves.pop()
-                row = math.floor(move_num / 9) + 1
-                col = move_num % 9 + 1
-                if (row == 2 and col == 2) or (row == 2 and col == 8):
-                    continue
-                if row == 4 and col == 6:
-                    row = row + 1
-                bot_move = goboard_slow.Move.play(gotypes.Point(row=row, col=col))
-                game = game.apply_move(bot_move)
-        
-        print(f'white length: {len(white_moves)}')
-        print(f'black length: {len(black_moves)}')
-        
-        #bot_move = goboard_slow.Move.play(gotypes.Point(row=5, col=4))
-        #game = game.apply_move(bot_move)
-        return game
-
-
+            self.root.after(150, partial(self.make_move, game, bots, count - 1))
 
     def start_game(self, board_size_selector, player_one_selector, player_two_selector):
         #getting selections for game
@@ -165,8 +128,6 @@ class GoBoard():
             gotypes.Player.black: player_one_bot,
             gotypes.Player.white: player_two_bot,
         }
-
-        game = self.setup_broken_game(game)
 
         self.make_move(game, bots, 3)
 
