@@ -1,5 +1,6 @@
 import copy
 from dlgo.gotypes import Player
+from dlgo.utils import print_board
 
 class Move():
     def __init__(self, point=None, is_pass=False, is_resign=False):
@@ -113,6 +114,12 @@ class Board():
                     neighbor_string.add_liberty(point)
             self._grid[point] = None
     
+    def __eq__(self, other):
+        return isinstance(other, Board) and \
+            self.num_rows == other.num_rows and \
+            self.num_cols == other.num_cols and \
+            self._grid == other._grid
+    
 class GameState():
     def __init__(self, board, next_player, previous, move):
         self.board = board
@@ -175,10 +182,15 @@ class GameState():
             return False
         if move.is_pass or move.is_resign:
             return True
-        return (
-            self.board.get(move.point) is None and
-            not self.is_move_self_capture(self.next_player, move) and
-            not self.does_move_violate_ko(self.next_player, move)
-        )
+        if not self.board.get(move.point) is None:
+            return False
+        if self.is_move_self_capture(self.next_player, move):
+            return False
+        if self.does_move_violate_ko(self.next_player, move):
+            return False
+        return True
+        # return (
+        #     (self.board.get(move.point) is None) and (not self.is_move_self_capture(self.next_player, move)) and (not self.does_move_violate_ko(self.next_player, move))
+        # )
     
     
