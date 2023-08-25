@@ -7,6 +7,7 @@ from dlgo import goboard_slow
 from dlgo import gotypes
 import time
 from functools import partial
+import math
 
 class GoBoard():
     def __init__(self):
@@ -91,20 +92,62 @@ class GoBoard():
                     self.draw_stone(self.ui_board, stone_x, stone_y, "black")
                 elif stone == gotypes.Player.white:
                     self.draw_stone(self.ui_board, stone_x, stone_y, "white") 
+        
         new_stone_x = self.calc_pos(bot_move.row)
         new_stone_y = self.calc_pos(bot_move.col)
         new_stone_color = game_board.get(gotypes.Point(row=bot_move.row, col=bot_move.col))
         self.draw_recent_stone(self.ui_board, new_stone_x, new_stone_y, new_stone_color)
 
     def make_move(self, game, bots, count):
-        if not game.is_over():
+        if game.is_over():
+            print("Game is over")
+            Label(self.root,
+                text='Game is over',
+                font=('Arial', 20)).place(x=100, y=400)
+
+        else:
             bot_move = bots[game.next_player].select_move(game)
-            game = game.apply_move(bot_move)
+
+            if (not bot_move.is_pass) and (not bot_move.is_resign):
+                game = game.apply_move(bot_move)
+                
+                self.write_pieces(game.board, bot_move.point)
+                
             
-            self.write_pieces(game.board, bot_move.point)
-            
-            self.root.after(1000, partial(self.make_move, game, bots, count - 1))
-        print("Game is over")
+            self.root.after(100000, partial(self.make_move, game, bots, count - 1))
+    
+    def setup_broken_game(self, game):
+        white_moves = list(range(0,37)) 
+        black_moves = list(range(40, 48)) + list(range(49,81))
+        print(f'white length: {len(white_moves)}')
+        print(f'black length: {len(black_moves)}')
+        while len(white_moves) > 0:
+            print("looping")
+            if game.next_player == gotypes.Player.black:
+                move_num = black_moves.pop()
+                row = math.floor(move_num / 9) + 1
+                col = (move_num % 9) + 1
+
+                if (row == 8 and col == 6) or (row == 8 and col == 2):
+                    continue
+                print(f"black playing: {row} - {col}")
+                bot_move = goboard_slow.Move.play(gotypes.Point(row=row, col=col))
+                game = game.apply_move(bot_move)
+            elif game.next_player == gotypes.Player.white:
+                move_num = white_moves.pop()
+                row = math.floor(move_num / 9) + 1
+                col = move_num % 9 + 1
+                if (row == 2 and col == 2) or (row == 2 and col == 6):
+                    continue
+                bot_move = goboard_slow.Move.play(gotypes.Point(row=row, col=col))
+                game = game.apply_move(bot_move)
+        
+        
+        #bot_move = goboard_slow.Move.play(gotypes.Point(row=5, col=4))
+        game = game.apply_move(bot_move)
+        return game
+
+
 
     def start_game(self, board_size_selector, player_one_selector, player_two_selector):
         #getting selections for game
@@ -119,6 +162,8 @@ class GoBoard():
             gotypes.Player.black: player_one_bot,
             gotypes.Player.white: player_two_bot,
         }
+
+        game = self.setup_broken_game(game)
 
         self.make_move(game, bots, 3)
 
@@ -136,6 +181,7 @@ class GoBoard():
             values=["9x9", "13x13", "19x19"]
         )
         board_size_selector.place(x=50, y=50)
+        board_size_selector.current(0)
 
         #adding black bot
         player_one_selector = Combobox(
@@ -143,6 +189,7 @@ class GoBoard():
             values=["Random"]
         )
         player_one_selector.place(x=250, y=50)
+        player_one_selector.current(0)
 
         #adding white bot
         player_two_selector = Combobox(
@@ -150,6 +197,7 @@ class GoBoard():
             values=["Random"]
         )
         player_two_selector.place(x=450, y=50)
+        player_two_selector.current(0)
 
         #adding button to start game
         button = Button(text="Display selection", command=partial(
@@ -159,6 +207,18 @@ class GoBoard():
             player_two_selector
         ))
         button.place(x=750, y=50)
+
+        columns = 'ABCDEFGHJKLMNOPQRST'
+        user_name = Label(self.root,
+            text =  '   '.join(columns[:9]),          # need to update
+            font=("Arial", 20)).place(x = 415,
+                                    y = 600) 
+        
+        for i in range(1, 10):
+            Label(self.root,
+                  text = f'{i}',
+                  font=('Arial', 20)).place(x = 367,
+                                            y = 595 - (i * 43))
 
         self.ui_board.pack(pady=200)
         self.write_board(self.ui_board)
